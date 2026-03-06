@@ -79,8 +79,9 @@
 
         </div>
     </div>
-
+    <script src="player.js"></script>
     <script src="gamescreen.js"></script>
+ 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
