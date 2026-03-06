@@ -14,11 +14,13 @@ class Player {
 
         // Add a movement speed (pixels per frame)
         this.speed = 5; 
+
         // <!-- L3-WN-Friction and Acceleration-3/06/26 -->
         this.vx = 0;             // Current horizontal velocity
         this.maxSpeed = 6;       // Top speed the player can reach
         this.acceleration = 1.2; // How quickly they speed up
         this.friction = 0.8;     // How quickly they slide to a stop (closer to 1 = ice, closer to 0 = mud)
+
         this.sprites = {};
         this.currentSprite = null;
         this.state = 'idle';
@@ -56,6 +58,7 @@ class Player {
     }
 
     update(keys) {
+
         if (keys.ArrowLeft || keys.a) {
             this.vx -= this.acceleration;
         }
@@ -81,6 +84,8 @@ class Player {
         // 5. Finally, apply the velocity to the player's actual X position
         this.x += this.vx;
 
+
+
     }
 
     draw(ctx) {
@@ -100,3 +105,4 @@ class Player {
 
     
 }
+
