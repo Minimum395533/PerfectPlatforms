@@ -18,8 +18,10 @@ let activePlayer;
 const keys = {
     ArrowLeft: false,
     ArrowRight: false,
+    ArrowUp: false,
     a: false,
-    d: false
+    d: false,
+    w: false
 };
 
 // Listen for keys being pressed
