@@ -10,7 +10,8 @@ const leaderboardCtx = leaderboardCanvas.getContext('2d');
 let gameState = 'START'; 
 let lives = 3;
 let startTime = 0;
-let currentLevelIndex = 0;
+let currentLevelIndex = 1;
+// this is on purpose not 0, -1 is finish, but the numbers are freaky deaky
 let levels = [];
 let activePlayer;
 // <!-- L3-WN-Add Listening for Keys-3/05/26 -->
@@ -121,15 +122,53 @@ function drawStartScreen() {
     ctx.font = 'bold 24px Arial, sans-serif';
     ctx.fillText('PLAY', canvas.width / 2, playButtonRect.y + 38);
 }
-// <!-- L3-WN-Placeholder Leaderboard Function-3/03/26 -->
-function initLeaderboard() {
-    leaderboardCtx.fillStyle = '#212529'; 
-    leaderboardCtx.fillRect(0, 0, leaderboardCanvas.width, leaderboardCanvas.height);
+async function initLeaderboard() {
+    // 1. ERASE THE CANVAS! We have to wipe the old scores before drawing the new ones
+    leaderboardCtx.clearRect(0, 0, leaderboardCanvas.width, leaderboardCanvas.height);
 
-    leaderboardCtx.fillStyle = '#ffffff';
-    leaderboardCtx.font = 'bold 18px Arial, sans-serif';
-    leaderboardCtx.textAlign = 'center';
-    leaderboardCtx.fillText('Top Scores', leaderboardCanvas.width / 2, 30);
+    try {
+        // 2. THE ULTIMATE CACHE BUSTER: Add "?t=" + Date.now() to trick the browser
+        const response = await fetch(`get_leaderboard.php?t=${Date.now()}`, { cache: 'no-store' });
+        const topScores = await response.json();
+
+        // 3. Loop through the data and draw each player
+        leaderboardCtx.textAlign = 'left';
+        let yOffset = 70; // Starting Y position for the first score
+
+        if (topScores.length === 0) {
+            leaderboardCtx.fillStyle = '#adb5bd';
+            leaderboardCtx.font = '14px Arial, sans-serif';
+            leaderboardCtx.textAlign = 'center';
+            leaderboardCtx.fillText('No scores yet!', leaderboardCanvas.width / 2, yOffset);
+            return;
+        }
+
+        topScores.forEach((player, index) => {
+            // Draw Rank & Name
+            leaderboardCtx.fillStyle = '#ffc107'; // Gold for rank
+            leaderboardCtx.font = 'bold 14px Arial, sans-serif';
+            leaderboardCtx.fillText(`#${index + 1}`, 10, yOffset);
+
+            leaderboardCtx.fillStyle = '#ffffff'; 
+            let displayName = player.playerName.length > 10 ? player.playerName.substring(0, 8) + '...' : player.playerName;
+            leaderboardCtx.fillText(displayName, 35, yOffset);
+
+            // Draw Score (Level) and Time
+            yOffset += 20;
+            leaderboardCtx.fillStyle = '#adb5bd'; // Light gray for stats
+            leaderboardCtx.font = '12px Arial, sans-serif';
+            leaderboardCtx.fillText(`Lvl: ${player.score} | Time: ${player.Time}s`, 35, yOffset);
+
+            yOffset += 30; // Add space before the next player
+        });
+
+    } catch (error) {
+        console.error("Error loading leaderboard:", error);
+        leaderboardCtx.fillStyle = '#dc3545';
+        leaderboardCtx.font = '12px Arial, sans-serif';
+        leaderboardCtx.textAlign = 'center';
+        leaderboardCtx.fillText('Offline', leaderboardCanvas.width / 2, 70);
+    } 
 }
 
 // <!-- L3-WN-Image Loading after JSON is ready.-3/03/26 -->
@@ -227,7 +266,7 @@ function gameLoop() {
 function startGame() {
     gameState = 'PLAYING';
     lives = 3;
-    currentLevelIndex = 0;
+    currentLevelIndex = 1;
     startTime = Date.now();
 
     const spawnCoords = getSpawnPosition(currentLevelIndex);
@@ -241,8 +280,145 @@ function startGame() {
     // Start the continuous game loop!
     requestAnimationFrame(gameLoop);
 }
-    
+// <!-- L3-WN-Add Lives-3/09/26 -->
+function handleDeath() {
+    lives--; // Take away a life
 
+    if (lives > 0) {
+        // Respawn the player at the start of the current level
+        const spawnCoords = getSpawnPosition(currentLevelIndex);
+        activePlayer.x = spawnCoords.x;
+        activePlayer.y = spawnCoords.y;
+
+        // Reset velocity so they don't carry momentum from their death!
+        activePlayer.vx = 0;
+        activePlayer.vy = 0;
+    }  else {
+        // changed to end state
+        triggerEndState(false); // false = they lost
+    }
+}
+function handleLevelComplete() {
+    // 1. Did they just beat the final level (index 0)?
+    if (currentLevelIndex === 0) {
+        triggerEndState(true); // Now trigger the final popup!
+        return; 
+    }
+
+    // 2. Otherwise, move to the next level
+    currentLevelIndex++;
+
+    // 3. Check if we just beat the final normal level
+    if (currentLevelIndex >= levels.length) {
+        // Send them to the special victory lap level!
+        currentLevelIndex = 0; 
+    }
+
+    // 4. Move the player to the new start position
+    const spawnCoords = getSpawnPosition(currentLevelIndex);
+    activePlayer.x = spawnCoords.x;
+    activePlayer.y = spawnCoords.y;
+    activePlayer.vx = 0;
+    activePlayer.vy = 0;
+}
+function resetToMainMenu() {
+    // 1. Reset the State Machine
+    gameState = 'START';
+
+    // 2. Reset Global Game Stats
+    currentLevelIndex = 1; 
+    lives = 3;             
+
+    // 3. Reset the Player Object (if it exists)
+    if (activePlayer) {
+        activePlayer.totalJumps = 0;
+    }
+
+    // 4. Clear the Canvas and draw your ACTUAL start screen!
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStartScreen(); 
+//init leaderboard here so it updates :3
+    initLeaderboard();
+}
+function triggerEndState(didWin) {
+    gameState = 'GAME_OVER'; 
+    const leaderboardCard = document.getElementById('leaderboard').closest('.card');
+    if (leaderboardCard) {
+        leaderboardCard.style.display = 'flex';
+    }
+
+    // 1. Calculate all the required data points
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000); 
+    const finalScore = didWin ? 0 : currentLevelIndex; // Let's ensure Level 0 is recorded if they win!
+    const finalLives = didWin ? lives : 0; 
+    const jumps = activePlayer ? activePlayer.totalJumps : 0;
+    const currentTimestamp = Math.floor(Date.now() / 1000); 
+
+    // 2. Darken the gamefield
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. Draw the Popup Title
+    ctx.fillStyle = didWin ? '#20c997' : '#dc3545'; 
+    ctx.font = 'bold 50px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(didWin ? 'YOU WIN!' : 'GAME OVER', canvas.width / 2, 130);
+
+    // 4. Draw the Data Points
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '24px Arial, sans-serif';
+    ctx.fillText(`Level Reached: ${finalScore}`, canvas.width / 2, 190);
+    ctx.fillText(`Time: ${timeSpent}s`, canvas.width / 2, 230);
+    ctx.fillText(`Lives Remaining: ${finalLives}`, canvas.width / 2, 270);
+    ctx.fillText(`Total Jumps: ${jumps}`, canvas.width / 2, 310);
+
+    ctx.font = '18px Arial, sans-serif';
+    ctx.fillStyle = '#adb5bd';
+    ctx.fillText('Check your browser prompt to save your score!', canvas.width / 2, 400);
+
+    // 5. Ask for name and send to PHP
+    setTimeout(() => {
+        let name = prompt("Enter your player name for the Leaderboard:");
+        if (!name || name.trim() === "") name = "Anonymous";
+
+        const gameData = {
+            playerName: name,
+            score: finalScore,
+            Time: timeSpent,
+            dateTime: currentTimestamp,
+            Livesremaining: finalLives,
+            TotalJumps: jumps
+        };
+
+        // Beam the data to our PHP script
+        // Beam the data to our PHP script
+        fetch('save_score.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(gameData)
+        })
+        .then(async response => {   // <--- 1. We make this block 'async'
+
+            // Read the JSON data
+            const data = await response.json();
+            console.log("Server response:", data);
+
+            // --- THE NEW SEAMLESS LOOP CODE ---
+
+            // 2. Refresh the leaderboard visually on the canvas AND WAIT for it to finish
+            await initLeaderboard();  // <--- 3. We 'await' the fetch here!
+
+            // 4. Reset the game state and go back to the start menu ONLY AFTER the above is done
+            resetToMainMenu(); 
+        })
+        .catch(error => {
+            console.error("Error saving score:", error);
+            // Even if the save fails, we should still let them play again
+            resetToMainMenu();
+        });
+
+    }, 100); 
+}
 // <!-- L3-WN-Loading images after JSON has loaded-3/03/26 -->
 window.onload = async function() {
     try {

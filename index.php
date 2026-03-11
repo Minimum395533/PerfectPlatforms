@@ -49,6 +49,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="about.php">About me</a>
+                        <a class="nav-link" href="leaderboard.php">Leaderboard</a>
                     </li>
                 </ul>
             </div>

@@ -15,7 +15,9 @@ class Player {
         this.maxFallSpeed = 10;   // Terminal velocity (max fall speed)
         this.jumpForce = 12;
         this.isGrounded = false;
-        
+
+        //jump tracking for data collection variable
+        this.totalJumps = 0;
         
         this.width = 40; 
         this.height = 40; 
@@ -28,7 +30,7 @@ class Player {
         this.maxSpeed = 6;       // Top speed the player can reach
         this.acceleration = 1.2; // How quickly they speed up
         this.friction = 0.8;     // How quickly they slide to a stop (closer to 1 = ice, closer to 0 = mud)
-        this.airFriction = 0.95;
+        this.airFriction = 0.97;
         this.sprites = {};
         this.currentSprite = null;
         this.state = 'idle';
@@ -99,6 +101,7 @@ class Player {
         if ((keys.ArrowUp || keys.w) && this.isGrounded) {
             this.vy = -this.jumpForce; 
             this.isGrounded = false; 
+            this.totalJumps++;
         }
 
         // 2. Apply Gravity
@@ -117,7 +120,7 @@ class Player {
         }
         // Bottom of screen (12 tiles * 40px = 480px total height)
         if (this.y > 480) {
-            console.log("Hit Bottom of Screen!");
+            handleDeath();
         }
     }
 
@@ -159,14 +162,14 @@ class Player {
 
             if (isColliding) {
                 // --- TRIGGER TILES (Hazard / Finish) ---
-                if (tile === 'H') { // Change 'H' to your hazard letter
-                    console.log("Hit Hazard!");
-                } else if (tile === 'F') { // Change 'F' to your finish letter
-                    console.log("Hit Finish Line!");
+                if (tile === 'X') { 
+                    handleDeath();
+                } else if (tile === 'F') { 
+                    handleLevelComplete();
                 }
 
                 // --- FULL COLLISION (Ground) ---
-                if (tile === 'G') { // Change 'G' to your ground letter
+                if (tile === 'G') { 
                     if (axis === 'x') {
                         if (this.vx > 0) { // Moving right, hit left wall
                             this.x = tileX - this.width;
