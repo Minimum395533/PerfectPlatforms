@@ -1,54 +1,8 @@
 <?php
-// Handle AJAX requests to save leaderboard data
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'addPlayer') {
-        $playerName = isset($_POST['playerName']) ? trim($_POST['playerName']) : '';
-        
-        // Validate name (7 letters only)
-        if (strlen($playerName) === 7 && preg_match('/^[a-zA-Z]{7}$/', $playerName)) {
-            $filePath = 'data/gamePlay.json';
-            
-            // Ensure data folder exists
-            if (!file_exists('data')) {
-                mkdir('data', 0777, true);
-            }
-            
-            // Read existing data
-            if (!file_exists($filePath)) {
-                file_put_contents($filePath, '[]');
-            }
-            
-            $jsonString = file_get_contents($filePath);
-            $currentData = json_decode($jsonString, true);
-            
-            if (!is_array($currentData)) {
-                $currentData = [];
-            }
-            
-            // Add new player entry
-            $newPlayer = [
-                'playerName' => $playerName,
-                'score' => 0,
-                'Time' => 0,
-                'dateTime' => time(),
-                'Livesremaining' => 3,
-                'TotalJumps' => 0
-            ];
-            
-            $currentData[] = $newPlayer;
-            file_put_contents($filePath, json_encode($currentData, JSON_PRETTY_PRINT));
-            
-            echo json_encode(['success' => true, 'message' => 'Player added successfully!']);
-            exit;
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Player name must be exactly 7 letters.']);
-            exit;
-        }
-    }
-}
+// Leaderboard display page
 ?>
 
-<!-- L3-WN-Leaderboard Page-3/11/26 -->
+<!-- L3-WN-Leaderboard Display Page-3/11/26 -->
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -107,37 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             color: #fff;
         }
 
-        .input-group {
-            margin-bottom: 30px;
-        }
-
-        .form-control {
-            background-color: #495057;
-            border-color: #0d6efd;
-            color: #ffffff;
-        }
-
-        .form-control::placeholder {
-            color: #adb5bd;
-        }
-
-        .form-control:focus {
-            background-color: #495057;
-            border-color: #0d6efd;
-            color: #ffffff;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
-        }
-
         .card {
             border-color: #0d6efd;
         }
@@ -145,18 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         .card-header {
             background-color: #0d6efd;
             border-color: #0d6efd;
-        }
-
-        .error-message {
-            color: #dc3545;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .success-message {
-            color: #28a745;
-            font-weight: bold;
-            margin-top: 10px;
         }
 
         .stats-grid {
@@ -196,12 +107,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                 <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="about.php">About me</a>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                       
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.php">About me</a>
+                        
                     </li>
                 </ul>
             </div>
@@ -214,15 +127,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 Leaderboard
             </div>
             <div class="card-body">
-                <!-- Add Player Form -->
-                <form id="addPlayerForm" method="POST">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="playerNameInput" name="playerName" placeholder="Enter 7-letter name" maxlength="7" required>
-                        <button class="btn btn-primary" type="submit">Add Player</button>
-                    </div>
-                </form>
-                <div id="messageContainer"></div>
-
                 <!-- Stats Overview -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -328,59 +232,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 document.getElementById('leaderboardBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading leaderboard data</td></tr>';
             }
         }
-
-        // Handle form submission
-        document.getElementById('addPlayerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const playerName = document.getElementById('playerNameInput').value.trim();
-            const messageContainer = document.getElementById('messageContainer');
-
-            messageContainer.innerHTML = '';
-
-            // Client-side validation
-            if (!playerName) {
-                messageContainer.innerHTML = '<div class="error-message">Please enter a player name.</div>';
-                return;
-            }
-
-            if (playerName.length !== 7) {
-                messageContainer.innerHTML = '<div class="error-message">Player name must be exactly 7 letters.</div>';
-                return;
-            }
-
-            if (!/^[a-zA-Z]{7}$/.test(playerName)) {
-                messageContainer.innerHTML = '<div class="error-message">Player name must contain only letters.</div>';
-                return;
-            }
-
-            try {
-                // Send form data via POST
-                const formData = new FormData();
-                formData.append('action', 'addPlayer');
-                formData.append('playerName', playerName);
-
-                const response = await fetch('leaderboard.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    messageContainer.innerHTML = '<div class="success-message">Player added successfully!</div>';
-                    document.getElementById('playerNameInput').value = '';
-                    setTimeout(() => {
-                        loadLeaderboard();
-                    }, 500);
-                } else {
-                    messageContainer.innerHTML = `<div class="error-message">${result.message}</div>`;
-                }
-            } catch (error) {
-                console.error('Error adding player:', error);
-                messageContainer.innerHTML = '<div class="error-message">Error adding player. Please try again.</div>';
-            }
-        });
 
         // Escape HTML to prevent XSS
         function escapeHtml(text) {
