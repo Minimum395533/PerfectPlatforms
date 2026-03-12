@@ -5,10 +5,28 @@
 
 
 class Player {
+   //<!-- L3-WN-Left Sprite Preload-3/12/26 -->
+    createFlippedSprite(image) {
+        const offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = image.width;
+        offscreenCanvas.height = image.height;
+        const offCtx = offscreenCanvas.getContext('2d');
+
+        // Flip the context horizontally
+        offCtx.translate(offscreenCanvas.width, 0);
+        offCtx.scale(-1, 1);
+
+        // Draw the original image onto this flipped canvas
+        offCtx.drawImage(image, 0, 0);
+
+        return offscreenCanvas;
+    }
     constructor(startX, startY) {
         this.x = startX;
         this.y = startY;
-        
+        // <!-- L3-WN-Player Sprite Loading-3/04/26 -->
+      
+        this.facingRight = true;
         // <!-- L3-WN-Player Gravity Attributes-3/09/26 -->
         this.vy = 0;              // Current vertical velocity
         this.gravity = 0.5;       // How fast they get pulled down
@@ -46,15 +64,22 @@ class Player {
     /**
      * Loads a new image and adds it to the sprites dictionary.
      */
-    loadSprite(stateName, imagePath) {
+    loadSprite(baseStateName, imagePath) {
         const img = new Image();
         img.src = imagePath;
-        this.sprites[stateName] = img;
 
-        // Set the very first loaded image as the active one to prevent drawing errors
+        // Immediately save the default right-facing sprite
+        this.sprites[`${baseStateName}_right`] = img;
+
+        // Set the very first loaded image as the active one
         if (!this.currentSprite) {
             this.currentSprite = img;
         }
+
+        // ONCE the image actually loads, generate the left-facing version!
+        img.onload = () => {
+            this.sprites[`${baseStateName}_left`] = this.createFlippedSprite(img);
+        };
     }
 
     /**
@@ -68,13 +93,27 @@ class Player {
     }
 
     update(keys) {
-        // --- HORIZONTAL MOVEMENT ---
+        // --- HORIZONTAL MOVEMENT & SPRITE STATE ---
+        let isMoving = false; // We'll use this to track if they are pressing a key
+
+        //<--L3-WN-Sprite Direction Fix-3/12/26 -->
         if (keys.ArrowLeft || keys.a) {
             this.vx -= this.acceleration;
+            isMoving = true;
+            this.facingRight = false; // Look left!
         }
         if (keys.ArrowRight || keys.d) {
             this.vx += this.acceleration;
+            isMoving = true;
+            this.facingRight = true;  // Look right!
         }
+
+        // Determine what the player is doing and which way they are looking
+        let action = isMoving ? 'walk' : 'idle';
+        let direction = this.facingRight ? '_right' : '_left';
+
+        // Set the combined state (e.g., 'walk_left' or 'idle_right')
+        this.setSpriteState(action + direction);
 
         // --- THE REPLACED FRICTION LOGIC ---
         if (this.isGrounded) {
@@ -82,7 +121,7 @@ class Player {
         } else {
             this.vx *= this.airFriction; // Use slippery air friction (0.95)
         }
-        // -----------------------------------
+       
 
         if (this.vx > this.maxSpeed) this.vx = this.maxSpeed;
         else if (this.vx < -this.maxSpeed) this.vx = -this.maxSpeed;
@@ -125,15 +164,14 @@ class Player {
     }
 
     draw(ctx) {
-        // Only attempt to draw the image if it has fully loaded
-        if (this.currentSprite && this.currentSprite.complete) {
+        
+        if (this.currentSprite && (this.currentSprite.complete || this.currentSprite instanceof HTMLCanvasElement)) {
             ctx.drawImage(this.currentSprite, this.x, this.y, this.width, this.height);
         } else {
             // Fallback yellow box just in case the image path is broken or loading is slow
             ctx.fillStyle = '#ffc107'; 
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
-       
     }
     // <!-- L3-WN-Collision Detection-3/09/26 -->
     checkCollisions(axis) {

@@ -105,7 +105,7 @@
                         <td><span class="${rankClass}">${rank}</span></td>
                         <td><strong>${escapeHtml(player.playerName)}</strong></td>
                         <td>${player.score}</td>
-                        <td>${player.Time}</td>
+                        <td>${Number(player.Time).toFixed(2)}</td>
                         <td>${player.Livesremaining}</td>
                         <td>${player.TotalJumps}</td>
                         <td>${formattedDate}</td>

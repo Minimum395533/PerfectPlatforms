@@ -157,7 +157,7 @@ async function initLeaderboard() {
             yOffset += 20;
             leaderboardCtx.fillStyle = '#adb5bd'; // Light gray for stats
             leaderboardCtx.font = '12px Arial, sans-serif';
-            leaderboardCtx.fillText(`Lvl: ${player.score} | Time: ${player.Time}s`, 35, yOffset);
+            leaderboardCtx.fillText(`Lvl: ${player.score} | Time: ${Number(player.Time).toFixed(2)}s`, 35, yOffset);
 
             yOffset += 30; // Add space before the next player
         });
@@ -348,7 +348,7 @@ function triggerEndState(didWin) {
     }
 
     // 1. Calculate all the required data points
-    const timeSpent = Math.floor((Date.now() - startTime) / 1000); 
+    const timeSpent = Number(((Date.now() - startTime) / 1000).toFixed(2)); 
     const finalScore = didWin ? 0 : currentLevelIndex; // Let's ensure Level 0 is recorded if they win!
     const finalLives = didWin ? lives : 0; 
     const jumps = activePlayer ? activePlayer.totalJumps : 0;
