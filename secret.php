@@ -49,10 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head>
+
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Platformer Level Editor</title>
+   
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -244,7 +246,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </style>
 </head>
 <body>
-
+<nav><a href="index.php">Back to Game</a>
+</nav>
     <div class="editor-container">
         <!-- TOOLS -->
         <div class="controls">

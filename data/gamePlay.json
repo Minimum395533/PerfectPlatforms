@@ -1,26 +1,10 @@
 [
     {
         "playerName": "Keep",
-        "score": 999,
+        "score": -10,
         "Time": 999.99,
         "dateTime": 1773251726,
         "Livesremaining": 0,
         "TotalJumps": 0
-    },
-    {
-        "playerName": "name",
-        "score": 0,
-        "Time": 8.51,
-        "dateTime": 1773336789,
-        "Livesremaining": 3,
-        "TotalJumps": 7
-    },
-    {
-        "playerName": "ccc",
-        "score": 0,
-        "Time": 7.39,
-        "dateTime": 1773337136,
-        "Livesremaining": 3,
-        "TotalJumps": 6
     }
 ]

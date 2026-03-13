@@ -22,6 +22,7 @@ class Player {
         return offscreenCanvas;
     }
     constructor(startX, startY) {
+        this.isDone = false;
         this.x = startX;
         this.y = startY;
         // <!-- L3-WN-Player Sprite Loading-3/04/26 -->
@@ -143,7 +144,7 @@ class Player {
             this.totalJumps++;
         }
 
-        // 2. Apply Gravity
+        // 2. Apply Gravity 
         this.vy += this.gravity;
         if (this.vy > this.maxFallSpeed) this.vy = this.maxFallSpeed;
 
@@ -200,9 +201,11 @@ class Player {
 
             if (isColliding) {
                 // --- TRIGGER TILES (Hazard / Finish) ---
-                if (tile === 'X') { 
+                if (tile === 'X' && !this.isDone) { 
+                    this.isDone = true; // Lock it!
                     handleDeath();
-                } else if (tile === 'F') { 
+                } else if (tile === 'F' && !this.isDone) { 
+                    this.isDone = true; // Lock it!
                     handleLevelComplete();
                 }
 

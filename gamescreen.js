@@ -259,7 +259,7 @@ function gameLoop() {
     if (activePlayer) {
         activePlayer.draw(ctx);
     }
-
+    drawLivesDisplay(ctx, lives);
     // 4. Ask the browser to run this loop again for the next frame
     requestAnimationFrame(gameLoop);
 }
@@ -293,9 +293,36 @@ function handleDeath() {
         // Reset velocity so they don't carry momentum from their death!
         activePlayer.vx = 0;
         activePlayer.vy = 0;
+
+        // UNLOCK the player so they can interact with tiles again!
+        activePlayer.isDone = false; 
+
     }  else {
         // changed to end state
         triggerEndState(false); // false = they lost
+        
+    }
+}
+// <!-- L3-WN-Display Lives-3/13/26 -->
+//oooOooH spooky, I added this on friday the 13th, its gonna be cursed
+function drawLivesDisplay(ctx, currentLives) {
+    // Customize your bars here!
+    const barWidth = 30;
+    const barHeight = 8;
+    const gap = 5;       // Space between each bar
+    const startX = 20;   // Distance from the left side of the screen
+    const startY = 20;   // Distance from the top of the screen
+
+    // Set the paintbrush to a nice, bright green
+    ctx.fillStyle = '#4CAF50'; 
+
+    // Loop through however many lives the player currently has
+    for (let i = 0; i < currentLives; i++) {
+        // Calculate the Y position so they stack nicely
+        // (i * (barHeight + gap)) pushes each new bar down below the last one
+        let currentY = startY + (i * (barHeight + gap));
+
+        ctx.fillRect(startX, currentY, barWidth, barHeight);
     }
 }
 function handleLevelComplete() {
@@ -320,6 +347,7 @@ function handleLevelComplete() {
     activePlayer.y = spawnCoords.y;
     activePlayer.vx = 0;
     activePlayer.vy = 0;
+    activePlayer.isDone = false;
 }
 function resetToMainMenu() {
     // 1. Reset the State Machine
