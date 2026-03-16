@@ -1,4 +1,5 @@
 <!-- L3-WN-Leaderboard Display Page-3/11/26 -->
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -51,14 +52,14 @@
                 <div class="table-responsive">
                     <table class="table table-dark leaderboard-table">
                         <thead>
-                            <tr>
-                                <th style="width: 60px;">Rank</th>
-                                <th>Player Name</th>
-                                <th style="width: 100px;">Level</th>
-                                <th style="width: 100px;">Time (s)</th>
-                                <th style="width: 120px;">Lives Remaining</th>
-                                <th style="width: 100px;">Total Jumps</th>
-                                <th style="width: 150px;">Date</th>
+                            <tr style="cursor: pointer;">
+                                <th data-sort="rank">Rank</th>
+                                <th data-sort="playerName">Player Name</th>
+                                <th data-sort="score">Level</th>
+                                <th data-sort="Time">Time (s)</th>
+                                <th data-sort="Livesremaining">Lives Remaining</th>
+                                <th data-sort="TotalJumps">Total Jumps</th>
+                                <th data-sort="dateTime">Date</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboardBody"></tbody>
