@@ -265,7 +265,9 @@ function gameLoop() {
 }
 function startGame() {
     gameState = 'PLAYING';
-    lives = 3;
+    //after testing, 5 or 10 lives may be, uh, more appropiate
+    //lives = 300;
+    lives = 10;
     currentLevelIndex = 1;
     startTime = Date.now();
 
